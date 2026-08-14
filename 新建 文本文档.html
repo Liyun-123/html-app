@@ -1,0 +1,93 @@
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>手动计数器</title>
+    
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh; /* 占满全屏高度 */
+            background-color: #f0f2f5;
+            margin: 0;
+        }
+
+        .card {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 300px;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 24px;
+        }
+
+        #count-display {
+            font-size: 60px;
+            color: #007bff;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+
+        button {
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+           /* 加号按钮是蓝色 */
+        #click-btn { background-color: #007bff; }
+        #click-btn:hover { background-color: #0056b3; }
+        
+        /* 【新增】减号按钮是红色 */
+        #minus-btn { background-color: #dc3545; }
+        #minus-btn:hover { background-color: #a71d2a; }
+        
+        button:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h1>点击计数器</h1>
+        <div id="count-display">0</div>
+        <!-- 按钮 -->
+	<div class = "btn-group">
+		<button id="click-btn">点我 +1</button>
+		<button id="minus-btn">点我  -1</button>
+	</div>
+    </div>
+
+    <!-- 3. JavaScript 部分：程序的灵魂（逻辑） -->
+    <script>
+        // 获取页面上的元素
+        const display = document.getElementById('count-display');
+        const btn = document.getElementById('click-btn');
+	const minusBtn = document.getElementById('minus-btn'); // 【新增】获取减号按钮
+        let count = 0;
+
+        btn.addEventListener('click', function() {
+            count = count + 1;
+            display.innerText = count;
+        });
+        minusBtn.addEventListener('click', function() {
+            count = count - 1;  // 每次点击减 1
+            display.innerText = count;
+        });
+    </script>
+
+</body>
+</html>
