@@ -1,0 +1,177 @@
+<!-- 解决浏览器节能机制的问题，采用 记录开始时的真实时间戳，每次更新时计算与当前真实时间的差值 的方法 -->
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>自动计时器</title>
+    
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f2f5;
+            margin: 0;
+        }
+
+        .card {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 360px;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        /* 时间显示样式 */
+        #time-display {
+            font-size: 48px;
+            color: #007bff;
+            margin: 20px 0;
+            font-weight: bold;
+            font-family: 'Courier New', monospace; /* 等宽字体，数字跳动时不会抖动 */
+        }
+
+	/* 历史记录提示文字 */
+        #history-hint {
+            font-size: 14px;
+            color: #6c757d;
+            height: 20px; /* 固定高度防止布局跳动 */
+            margin-bottom: 10px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+        }
+
+        button {
+            color: white;
+            border: none;
+            padding: 12px 0;
+            font-size: 14px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.1s;
+            flex: 1; /* 让按钮平均分配宽度 */
+        }
+
+        button:active { transform: scale(0.95); }
+
+        /* 开始按钮 - 绿色 */
+        #start-btn { background-color: #28a745; }
+        #start-btn:hover { background-color: #218838; }
+        
+        /* 重置按钮 - 灰色 */
+        #reset-btn { background-color: #6c757d; }
+        #reset-btn:hover { background-color: #545b62; }
+
+	 /* 历史按钮 - 红色 */
+        #history-btn { background-color: #F8D7DA; }
+        #history-btn:hover { background-color: #721C24; }
+	
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h1>自动计时器</h1>
+ 	<div id="history-hint"></div> <!-- 用于显示当前是“计时中”还是“查看历史” -->
+        <div id="time-display">00:00:00</div>
+        
+        <div class="btn-group">
+            <button id="start-btn">开始</button>
+            <button id="reset-btn">重置</button>
+	    <button id="history-btn">历史</button>
+        </div>
+    </div>
+
+    <script>
+        const display = document.getElementById('time-display');
+	const hint = document.getElementById('history-hint');
+        const startBtn = document.getElementById('start-btn');
+        const resetBtn = document.getElementById('reset-btn');
+	const historyBtn = document.getElementById('history-btn');  
+
+        let startTime = 0;      // 记录开始计时的真实时间戳
+    	let elapsed = 0;        // 记录已经流逝的秒数
+	let lastRecord = 0;     // 【新增】存储重置前的历史成绩
+        let timer = null; // 用于存储定时器的ID
+        let isRunning = false; // 记录当前是否在运行
+	let isShowingHistory = false; // 【新增】标记当前是否正在查看历史
+
+        // 将秒数转换为 HH:MM:SS 格式
+        function formatTime(seconds) {
+            const h = String(Math.floor(seconds / 3600)).padStart(2, '0');
+            const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
+            const s = String(seconds % 60).padStart(2, '0');
+            return `${h}:${m}:${s}`;
+        }
+
+    	// 核心更新函数：基于真实时间差计算
+    	function updateTimer() {
+        	if (!isRunning) return;
+        
+        	// 计算当前真实时间与开始时间的差值（毫秒转秒）
+        	const now = Date.now();
+        	elapsed = Math.floor((now - startTime) / 1000);
+        
+        	display.innerText = formatTime(elapsed);
+    	}
+
+    	// 开始/暂停 逻辑
+    	startBtn.addEventListener('click', () => {
+        	if (isRunning) {
+            	// 暂停逻辑
+            	clearInterval(timer);
+            	isRunning = false;
+		hint.innerText = "";
+            	startBtn.innerText = "继续";
+            	startBtn.style.backgroundColor = '#28a745';
+        	} else {
+            	// 开始/继续逻辑
+            	isRunning = true;
+		hint.innerText = "";
+            	// 关键：如果是重新开始，记录当前时间；如果是继续，需要减去已经流逝的时间
+            	startTime = Date.now() - (elapsed * 1000); 
+            
+            	// 每 100ms 检查一次真实时间，保证显示流畅且精准
+            	timer = setInterval(updateTimer, 100); 
+            
+            	startBtn.innerText = "暂停";
+            	startBtn.style.backgroundColor = '#ffc107';
+        	}
+    	});
+
+    	// 重置逻辑
+    	resetBtn.addEventListener('click', () => {
+        	clearInterval(timer);
+        	isRunning = false;
+		// 【核心】重置前，把当前时间存入历史记录
+                lastRecord = elapsed;
+		hint.innerText = "";
+        	elapsed = 0;
+        	display.innerText = formatTime(0);
+        	startBtn.innerText = "开始";
+        	startBtn.style.backgroundColor = '#28a745';
+    	});
+	//历史逻辑
+	historyBtn.addEventListener('click', () => {
+            isShowingHistory = true;
+            display.innerText = formatTime(lastRecord);
+            hint.innerText = "📊 正在查看历史记录";
+        });
+	
+    </script>
+
+</body>
+</html>
